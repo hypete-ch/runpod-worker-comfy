@@ -8,6 +8,7 @@ import os
 import requests
 import base64
 from io import BytesIO
+import logging
 
 # Time to wait between API check attempts in milliseconds
 COMFY_API_AVAILABLE_INTERVAL_MS = 50
@@ -236,7 +237,10 @@ def process_output_images(outputs, job_id):
 
     for node_id, node_output in outputs.items():
         if "images" in node_output:
+            logging.info("%s", node_output["images"])
             for image in node_output["images"]:
+                if image.get("type") != "output":
+                    continue
                 output_images = os.path.join(image["subfolder"], image["filename"])
 
     print(f"runpod-worker-comfy - image generation is done")
