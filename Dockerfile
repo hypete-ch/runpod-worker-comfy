@@ -42,7 +42,7 @@ RUN if [ "$MODEL_TYPE" = "refine" ]; then \
     && git clone https://github.com/glowcone/comfyui-base64-to-image custom_nodes/comfyui-base64-to-image \
     && git clone https://github.com/tsogzark/ComfyUI-load-image-from-url custom_nodes/ComfyUI-load-image-from-url \
     && git clone https://github.com/ZHO-ZHO-ZHO/ComfyUI-BRIA_AI-RMBG.git custom_nodes/ComfyUI-BRIA_AI-RMBG \
-	&& wget -O custom_nodes/ComfyUI-BRIA_AI-RMBG/RMBG-1.4/model.pth "https://huggingface.co/briaai/RMBG-1.4/resolve/main/model.pth" \
+    && wget -O custom_nodes/ComfyUI-BRIA_AI-RMBG/RMBG-1.4/model.pth "https://huggingface.co/briaai/RMBG-1.4/resolve/main/model.pth" \
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*; \
   fi
 
@@ -90,7 +90,7 @@ RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
         && wget -O models/liveportrait/warping_module.safetensors "https://huggingface.co/Kijai/LivePortrait_safetensors/resolve/main/warping_module.safetensors" \
         && wget -O models/liveportrait/spade_generator.safetensors "https://huggingface.co/Kijai/LivePortrait_safetensors/resolve/main/spade_generator.safetensors" \
         && wget -O models/liveportrait/stitching_retargeting_module.safetensors  "https://huggingface.co/Kijai/LivePortrait_safetensors/resolve/main/stitching_retargeting_module.safetensors" \
-		; \
+        ; \
     fi
 
 # Stage 3: Final image
