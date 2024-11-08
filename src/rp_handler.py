@@ -201,7 +201,7 @@ def base64_encode(img_path):
         return f"{encoded_string}"
 
 
-def process_output_images(outputs, job_id):
+def process_output_images(outputs, job_id, format):
     """
     This function takes the "outputs" from image generation and the job ID,
     then determines the correct way to return the image, either as a direct URL
@@ -254,7 +254,7 @@ def process_output_images(outputs, job_id):
 
         # The image is in the output folder
         if os.path.exists(local_image_path):
-            if os.environ.get("BUCKET_ENDPOINT_URL", False):
+            if os.environ.get("BUCKET_ENDPOINT_URL", False) and format != "base64":
                 # URL to image in AWS S3
                 result_images.append(rp_upload.upload_image(job_id, local_image_path))
                 print(
@@ -262,7 +262,7 @@ def process_output_images(outputs, job_id):
                 )
             else:
                 # base64 image
-                result_iamges.append(base64_encode(local_image_path))
+                result_images.append(base64_encode(local_image_path))
                 print(
                     "runpod-worker-comfy - [{output_idx}]the image was generated and converted to base64"
                 )
@@ -348,7 +348,7 @@ def handler(job):
         return {"error": f"Error waiting for image generation: {str(e)}"}
 
     # Get the generated image and return it as URL in an AWS bucket or as base64
-    images_result = process_output_images(history[prompt_id].get("outputs"), job["id"])
+    images_result = process_output_images(history[prompt_id].get("outputs"), job["id"], job_input.get("format"))
 
     result = {**images_result, "refresh_worker": REFRESH_WORKER}
 

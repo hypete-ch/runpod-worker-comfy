@@ -44,6 +44,13 @@ RUN if [ "$MODEL_TYPE" = "refine" ]; then \
     && git clone https://github.com/ZHO-ZHO-ZHO/ComfyUI-BRIA_AI-RMBG.git custom_nodes/ComfyUI-BRIA_AI-RMBG \
     && wget -O custom_nodes/ComfyUI-BRIA_AI-RMBG/RMBG-1.4/model.pth "https://huggingface.co/briaai/RMBG-1.4/resolve/main/model.pth" \
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*; \
+  elif [ "$MODEL_TYPE" = "base" ]; then \
+    apt-get update \
+    && apt-get install -y libgl1 \
+      libglib2.0-0 \
+    && git clone https://github.com/glowcone/comfyui-base64-to-image custom_nodes/comfyui-base64-to-image \
+    && git clone https://github.com/tsogzark/ComfyUI-load-image-from-url custom_nodes/ComfyUI-load-image-from-url \
+    && git clone https://github.com/ssitu/ComfyUI_UltimateSDUpscale.git custom_nodes/ComfyUI_UltimateSDUpscale --recursive; \
   fi
 
 # Support for the network volume
@@ -60,6 +67,7 @@ RUN chmod +x /start.sh
 FROM base AS downloader
 
 ARG HUGGINGFACE_ACCESS_TOKEN
+ARG CIVITAI_ACCESS_TOKEN
 ARG MODEL_TYPE
 
 # Change working directory to ComfyUI
