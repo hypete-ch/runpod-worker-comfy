@@ -65,10 +65,12 @@ def validate_input(job_input):
 
     valid_to = job_input.get("validTo")
     if valid_to:
-        if not valid_to.isdigit():
-            return None, "'validTo' must be epoch timestamp"
+        if not isinstance(valid_to, int):
+            print(f"runpod-worker-comfy - invalid validTo type")
+            return None, "'validTo' must be integer"
 
         if valid_to < int(time.time()):
+            print(f"runpod-worker-comfy - job timeout")
             return None, "job is not valid anymore. timeout"
 
     # Return validated data and no error
