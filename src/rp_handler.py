@@ -63,6 +63,14 @@ def validate_input(job_input):
                 "'images' must be a list of objects with 'name' and 'image' keys",
             )
 
+    valid_to = job_input.get("validTo")
+    if valid_to:
+        if not valid_to.isdigit():
+            return None, "'validTo' must be epoch timestamp"
+
+        if valid_to < int(time.time()):
+            return None, "job is not valid anymore. timeout"
+
     # Return validated data and no error
     return {"workflow": workflow, "images": images}, None
 
