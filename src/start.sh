@@ -4,6 +4,14 @@
 TCMALLOC="$(ldconfig -p | grep -Po "libtcmalloc.so.\d" | head -n 1)"
 export LD_PRELOAD="${TCMALLOC}"
 
+if [ -n "$VM_TOUCH" ]; then
+    echo "VM_TOUCH is set: $VM_TOUCH"
+
+    # execute vmtouch
+    echo "Running vmtouch for $VM_TOUCH..."
+    vmtouch $VM_TOUCH
+fi
+
 # Serve the API and don't shutdown the container
 if [ "$SERVE_API_LOCALLY" == "true" ]; then
     echo "runpod-worker-comfy: Starting ComfyUI"

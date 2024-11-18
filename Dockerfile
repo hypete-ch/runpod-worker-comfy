@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y \
     python3.10 \
     python3-pip \
     git \
-    wget
+    wget \
+    vmtouch
 
 # Clean up to reduce image size
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
@@ -49,6 +50,7 @@ RUN if [ "$MODEL_TYPE" = "refine" ]; then \
     && apt-get install -y libgl1 \
       libglib2.0-0 \
     && git clone https://github.com/glowcone/comfyui-base64-to-image custom_nodes/comfyui-base64-to-image \
+    && pip3 install --upgrade opencv-python \
     && git clone https://github.com/tsogzark/ComfyUI-load-image-from-url custom_nodes/ComfyUI-load-image-from-url \
     && git clone https://github.com/ssitu/ComfyUI_UltimateSDUpscale.git custom_nodes/ComfyUI_UltimateSDUpscale --recursive; \
   fi

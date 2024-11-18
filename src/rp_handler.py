@@ -9,6 +9,8 @@ import requests
 import base64
 from io import BytesIO
 import logging
+import aiohttp
+import asyncio
 
 # Time to wait between API check attempts in milliseconds
 COMFY_API_AVAILABLE_INTERVAL_MS = 50
@@ -23,6 +25,7 @@ COMFY_HOST = "127.0.0.1:8188"
 # Enforce a clean state after each job is done
 # see https://docs.runpod.io/docs/handler-additional-controls#refresh-worker
 REFRESH_WORKER = os.environ.get("REFRESH_WORKER", "false").lower() == "true"
+MAX_CONCURRENCY = int(os.environ.get("MAX_CONCURRENCY", 1))
 
 
 def validate_input(job_input):
@@ -111,7 +114,7 @@ def check_server(url, retries=500, delay=50):
     return False
 
 
-def upload_images(images):
+async def upload_images(images):
     """
     Upload a list of base64 encoded images to the ComfyUI server using the /upload/image endpoint.
 
@@ -130,23 +133,26 @@ def upload_images(images):
 
     print(f"runpod-worker-comfy - image(s) upload")
 
-    for image in images:
-        name = image["name"]
-        image_data = image["image"]
-        blob = base64.b64decode(image_data)
+    async with aiohttp.ClientSession() as session:
+        for image in images:
+            name = image["name"]
+            image_data = image["image"]
+            blob = base64.b64decode(image_data)
 
-        # Prepare the form data
-        files = {
-            "image": (name, BytesIO(blob), "image/png"),
-            "overwrite": (None, "true"),
-        }
+            # Prepare the form data
+            form_data = aiohttp.FormData()
+            form_data.add_field("image", BytesIO(blob), filename=name, content_type="image/png")
+            form_data.add_field("overwrite", "true")
 
-        # POST request to upload the image
-        response = requests.post(f"http://{COMFY_HOST}/upload/image", files=files)
-        if response.status_code != 200:
-            upload_errors.append(f"Error uploading {name}: {response.text}")
-        else:
-            responses.append(f"Successfully uploaded {name}")
+            # Asynchronous POST request to upload the image
+            try:
+                async with session.post(f"http://{COMFY_HOST}/upload/image", data=form_data) as response:
+                    if response.status != 200:
+                        upload_errors.append(f"Error uploading {name}: {await response.text()}")
+                    else:
+                        responses.append(f"Successfully uploaded {name}")
+            except Exception as e:
+                uploadErrors.append(f"Error uploding {name}: {str(e)}")
 
     if upload_errors:
         print(f"runpod-worker-comfy - image(s) upload with errors")
@@ -164,7 +170,7 @@ def upload_images(images):
     }
 
 
-def queue_workflow(workflow):
+async def queue_workflow(workflow):
     """
     Queue a workflow to be processed by ComfyUI
 
@@ -176,13 +182,17 @@ def queue_workflow(workflow):
     """
 
     # The top level element "prompt" is required by ComfyUI
-    data = json.dumps({"prompt": workflow}).encode("utf-8")
+    data = {"prompt": workflow}
 
-    req = urllib.request.Request(f"http://{COMFY_HOST}/prompt", data=data)
-    return json.loads(urllib.request.urlopen(req).read())
+    async with aiohttp.ClientSession() as session:
+        async with session.post(f"http://{COMFY_HOST}/prompt", json=data) as response:
+            if response.status == 200:
+                return await response.json()
+            else:
+                raise Exception(f"Failed to queue workflow: {await response.text()}")
 
 
-def get_history(prompt_id):
+async def get_history(prompt_id):
     """
     Retrieve the history of a given prompt using its ID
 
@@ -192,9 +202,12 @@ def get_history(prompt_id):
     Returns:
         dict: The history of the prompt, containing all the processing steps and results
     """
-    with urllib.request.urlopen(f"http://{COMFY_HOST}/history/{prompt_id}") as response:
-        return json.loads(response.read())
-
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"http://{COMFY_HOST}/history/{prompt_id}") as response:
+            if response.status == 200:
+                return await response.json()
+            else:
+                raise Exception(f"Failed to get history: {await response.text()}")
 
 def base64_encode(img_path):
     """
@@ -268,13 +281,13 @@ def process_output_images(outputs, job_id, format):
                 # URL to image in AWS S3
                 result_images.append(rp_upload.upload_image(job_id, local_image_path))
                 print(
-                    "runpod-worker-comfy - [{output_idx}]the image was generated and uploaded to AWS S3"
+                    f"runpod-worker-comfy - [{output_idx}]the image was generated and uploaded to AWS S3"
                 )
             else:
                 # base64 image
                 result_images.append(base64_encode(local_image_path))
                 print(
-                    "runpod-worker-comfy - [{output_idx}]the image was generated and converted to base64"
+                    f"runpod-worker-comfy - [{output_idx}]the image was generated and converted to base64"
                 )
 
         else:
@@ -293,7 +306,7 @@ def process_output_images(outputs, job_id, format):
         }
 
 
-def handler(job):
+async def handler(job):
     """
     The main function that handles a job of generating an image.
 
@@ -318,21 +331,21 @@ def handler(job):
     images = validated_data.get("images")
 
     # Make sure that the ComfyUI API is available
-    check_server(
+    await asyncio.to_thread(check_server, 
         f"http://{COMFY_HOST}",
         COMFY_API_AVAILABLE_MAX_RETRIES,
         COMFY_API_AVAILABLE_INTERVAL_MS,
     )
 
     # Upload images if they exist
-    upload_result = upload_images(images)
+    upload_result = await upload_images(images)
 
     if upload_result["status"] == "error":
         return upload_result
 
     # Queue the workflow
     try:
-        queued_workflow = queue_workflow(workflow)
+        queued_workflow = await queue_workflow(workflow)
         prompt_id = queued_workflow["prompt_id"]
         print(f"runpod-worker-comfy - queued workflow with ID {prompt_id}")
     except Exception as e:
@@ -343,14 +356,14 @@ def handler(job):
     retries = 0
     try:
         while retries < COMFY_POLLING_MAX_RETRIES:
-            history = get_history(prompt_id)
+            history = await get_history(prompt_id)
 
             # Exit the loop if we have found the history
             if prompt_id in history and history[prompt_id].get("outputs"):
                 break
             else:
                 # Wait before trying again
-                time.sleep(COMFY_POLLING_INTERVAL_MS / 1000)
+                await asyncio.sleep(COMFY_POLLING_INTERVAL_MS / 1000)
                 retries += 1
         else:
             return {"error": "Max retries reached while waiting for image generation"}
@@ -358,13 +371,51 @@ def handler(job):
         return {"error": f"Error waiting for image generation: {str(e)}"}
 
     # Get the generated image and return it as URL in an AWS bucket or as base64
-    images_result = process_output_images(history[prompt_id].get("outputs"), job["id"], job_input.get("format"))
+    images_result = await asyncio.to_thread(
+        process_output_images,
+        history[prompt_id].get("outputs"),
+        job["id"],
+        job_input.get("format")
+    )
 
-    result = {**images_result, "refresh_worker": REFRESH_WORKER}
+    result = {**images_result, "refresh_worker": REFRESH_WORKER} if REFRESH_WORKER else images_result
+
+    if job_input.get("format") != "base64":
+        print(f"result: {str(result)}")
 
     return result
 
 
+def adjust_concurrency(current_concurrency):
+    """
+    Adjusts the concurrency level based on the current request rate.
+    """
+    """
+    global request_rate
+    update_request_rate()  # Simulate changes in request rate
+
+    max_concurrency = 10
+    min_concurrency = 1
+    high_request_rate_threshold = 50
+
+    if (
+        request_rate > high_request_rate_threshold
+        and current_concurrency < max_concurrency
+    ):
+        return current_concurrency + 1
+    elif (
+        request_rate <= high_request_rate_threshold
+        and current_concurrency > min_concurrency
+    ):
+        return current_concurrency - 1
+    """
+    if current_concurrency < MAX_CONCURRENCY:
+        print(f"current_concurrency {current_concurrency}")
+        return current_concurrency + 1
+
+    return MAX_CONCURRENCY
+
+
 # Start the handler only if this script is run directly
 if __name__ == "__main__":
-    runpod.serverless.start({"handler": handler})
+    runpod.serverless.start({"handler": handler, "concurrency_modifier": adjust_concurrency})
