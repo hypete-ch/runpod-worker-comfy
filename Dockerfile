@@ -34,6 +34,8 @@ RUN pip3 install runpod requests
 
 ARG MODEL_TYPE
 
+ENV COMFYUI_PATH="/comfyui"
+
 RUN if [ "$MODEL_TYPE" = "refine" ]; then \
     apt-get update \
     && apt-get install -y libgl1 \
@@ -49,10 +51,19 @@ RUN if [ "$MODEL_TYPE" = "refine" ]; then \
     apt-get update \
     && apt-get install -y libgl1 \
       libglib2.0-0 \
+    && git clone https://github.com/ltdrdata/ComfyUI-Manager.git custom_nodes/ComfyUI-Manager \
+    && pip3 install -r custom_nodes/ComfyUI-Manager/requirements.txt \
+    && python3 custom_nodes/ComfyUI-Manager/cm-cli.py install \
+        ComfyUI_essentials \
+        comfyui-various \
+        ComfyUI_Comfyroll_CustomNodes \
+        was-node-suite-comfyui \
+        masquerade-nodes-comfyui \
+        ComfyUI-load-image-from-url \
+        ComfyUI_UltimateSDUpscale \
     && git clone https://github.com/glowcone/comfyui-base64-to-image custom_nodes/comfyui-base64-to-image \
     && pip3 install --upgrade opencv-python \
-    && git clone https://github.com/tsogzark/ComfyUI-load-image-from-url custom_nodes/ComfyUI-load-image-from-url \
-    && git clone https://github.com/ssitu/ComfyUI_UltimateSDUpscale.git custom_nodes/ComfyUI_UltimateSDUpscale --recursive; \
+    ; \
   fi
 
 # Support for the network volume
