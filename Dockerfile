@@ -7,6 +7,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PIP_PREFER_BINARY=1
 # Ensures output from python is printed immediately to the terminal without buffering
 ENV PYTHONUNBUFFERED=1 
+ENV COMFYUI_PATH="/comfyui"
+
 
 # Install Python, git and other necessary tools
 RUN apt-get update && apt-get install -y \
@@ -14,7 +16,9 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     git \
     wget \
-    vmtouch
+    vmtouch \
+    libgl1 \
+    libglib2.0-0
 
 # Clean up to reduce image size
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
@@ -27,33 +31,26 @@ WORKDIR /comfyui
 
 # Install ComfyUI dependencies
 RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
-    && pip3 install --upgrade -r requirements.txt
+    && pip3 install --upgrade -r requirements.txt \
+    && git clone https://github.com/ltdrdata/ComfyUI-Manager.git custom_nodes/ComfyUI-Manager \
+    && pip3 install -r custom_nodes/ComfyUI-Manager/requirements.txt
 
 # Install runpod
 RUN pip3 install runpod requests
 
 ARG MODEL_TYPE
 
-ENV COMFYUI_PATH="/comfyui"
-
 RUN if [ "$MODEL_TYPE" = "refine" ]; then \
-    apt-get update \
-    && apt-get install -y libgl1 \
-      libglib2.0-0 \
-    && git clone https://github.com/PowerHouseMan/ComfyUI-AdvancedLivePortrait.git custom_nodes/ComfyUI-AdvancedLivePortrait \
-    && pip3 install --upgrade -r custom_nodes/ComfyUI-AdvancedLivePortrait/requirements.txt \
-    && git clone https://github.com/glowcone/comfyui-base64-to-image custom_nodes/comfyui-base64-to-image \
-    && git clone https://github.com/tsogzark/ComfyUI-load-image-from-url custom_nodes/ComfyUI-load-image-from-url \
-    && git clone https://github.com/ZHO-ZHO-ZHO/ComfyUI-BRIA_AI-RMBG.git custom_nodes/ComfyUI-BRIA_AI-RMBG \
+    python3 custom_nodes/ComfyUI-Manager/cm-cli.py install \
+        ComfyUI-AdvancedLivePortrait \
+        ComfyUI-load-image-from-url \
+        ComfyUI-BRIA_AI-RMBG \
     && wget -O custom_nodes/ComfyUI-BRIA_AI-RMBG/RMBG-1.4/model.pth "https://huggingface.co/briaai/RMBG-1.4/resolve/main/model.pth" \
-    && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*; \
+    && pip3 install --upgrade opencv-python \
+    && git clone https://github.com/glowcone/comfyui-base64-to-image custom_nodes/comfyui-base64-to-image \
+    ; \
   elif [ "$MODEL_TYPE" = "base" ]; then \
-    apt-get update \
-    && apt-get install -y libgl1 \
-      libglib2.0-0 \
-    && git clone https://github.com/ltdrdata/ComfyUI-Manager.git custom_nodes/ComfyUI-Manager \
-    && pip3 install -r custom_nodes/ComfyUI-Manager/requirements.txt \
-    && python3 custom_nodes/ComfyUI-Manager/cm-cli.py install \
+    python3 custom_nodes/ComfyUI-Manager/cm-cli.py install \
         ComfyUI_essentials \
         comfyui-various \
         ComfyUI_Comfyroll_CustomNodes \
@@ -61,8 +58,9 @@ RUN if [ "$MODEL_TYPE" = "refine" ]; then \
         masquerade-nodes-comfyui \
         ComfyUI-load-image-from-url \
         ComfyUI_UltimateSDUpscale \
-    && git clone https://github.com/glowcone/comfyui-base64-to-image custom_nodes/comfyui-base64-to-image \
+        ComfyUI-Inpaint-CropAndStitch \
     && pip3 install --upgrade opencv-python \
+    && git clone https://github.com/glowcone/comfyui-base64-to-image custom_nodes/comfyui-base64-to-image \
     ; \
   fi
 
