@@ -62,6 +62,11 @@ RUN if [ "$MODEL_TYPE" = "refine" ]; then \
     && pip3 install --upgrade opencv-python \
     && git clone https://github.com/glowcone/comfyui-base64-to-image custom_nodes/comfyui-base64-to-image \
     ; \
+    elif [ "$MODEL_TYPE" = "hunyuan" ]; then \
+   
+    
+   
+    ; \
   fi
 
 # Support for the network volume
@@ -110,6 +115,15 @@ RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
         && wget -O models/liveportrait/spade_generator.safetensors "https://huggingface.co/Kijai/LivePortrait_safetensors/resolve/main/spade_generator.safetensors" \
         && wget -O models/liveportrait/stitching_retargeting_module.safetensors  "https://huggingface.co/Kijai/LivePortrait_safetensors/resolve/main/stitching_retargeting_module.safetensors" \
         ; \
+        elif [ "$MODEL_TYPE" = "hunyuan" ]; then \
+        mkdir -p models/liveportrait models/ultralytics \
+          && wget -O models/ultralytics/face_yolov8n.pt "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8n.pt" \
+          && wget -O models/liveportrait/appearance_feature_extractor.safetensors "https://huggingface.co/Kijai/LivePortrait_safetensors/resolve/main/appearance_feature_extractor.safetensors" \
+          && wget -O models/liveportrait/motion_extractor.safetensors "https://huggingface.co/Kijai/LivePortrait_safetensors/resolve/main/motion_extractor.safetensors" \
+          && wget -O models/liveportrait/warping_module.safetensors "https://huggingface.co/Kijai/LivePortrait_safetensors/resolve/main/warping_module.safetensors" \
+          && wget -O models/liveportrait/spade_generator.safetensors "https://huggingface.co/Kijai/LivePortrait_safetensors/resolve/main/spade_generator.safetensors" \
+          && wget -O models/liveportrait/stitching_retargeting_module.safetensors  "https://huggingface.co/Kijai/LivePortrait_safetensors/resolve/main/stitching_retargeting_module.safetensors" \
+          ; \
     fi
 
 # Stage 3: Final image
