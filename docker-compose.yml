@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   comfyui:
     image: timpietruskyblibla/runpod-worker-comfy:dev
@@ -7,6 +5,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - SERVE_API_LOCALLY=true
+      - MODEL_TYPE=hunyuan
     ports:
       - "8000:8000"
       - "8188:8188"
