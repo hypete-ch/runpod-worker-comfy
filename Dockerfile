@@ -64,8 +64,14 @@ RUN if [ "$MODEL_TYPE" = "refine" ]; then \
     ; \
   elif [ "$MODEL_TYPE" = "hunyuan" ]; then \
     python3 custom_nodes/ComfyUI-Manager/cm-cli.py install \
-        ComfyUI-HunyuanVideoWrapper \
-        ComfyUI-VideoHelperSuite \
+        ComfyUI-Inpaint-CropAndStitch \
+    && pip3 install --upgrade opencv-python \
+    && pip3 install accelerate \
+    && pip3 install diffusers \
+    && git clone https://github.com/kijai/ComfyUI-HunyuanVideoWrapper custom_nodes/ComfyUI-HunyuanVideoWrapper \
+    && git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite custom_nodes/ComfyUI-VideoHelperSuite \
+    && git clone https://github.com/kijai/ComfyUI-KJNodes custom_nodes/ComfyUI-KJNodes \
+    && pip3 install -r custom_nodes/ComfyUI-KJNodes/requirements.txt \
   ; \
   fi
 
@@ -116,10 +122,10 @@ RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
         && wget -O models/liveportrait/stitching_retargeting_module.safetensors  "https://huggingface.co/Kijai/LivePortrait_safetensors/resolve/main/stitching_retargeting_module.safetensors" \
         ; \
     elif [ "$MODEL_TYPE" = "hunyuan" ]; then \
-      mkdir -p models/text_encoders \
+      mkdir -p models/text_encoders models/diffusion_models/hunyuan_video \
         && wget -O models/text_encoders/clip_l.safetensors "https://huggingface.co/Comfy-Org/HunyuanVideo_repackaged/blob/main/split_files/text_encoders/clip_l.safetensors" \
         && wget -O models/text_encoders/llava_llama3_fp16.safetensors "https://huggingface.co/Comfy-Org/HunyuanVideo_repackaged/resolve/main/split_files/text_encoders/llava_llama3_fp16.safetensors" \
-        && wget -O models/diffusion_models/hunyuan_video/hunyuan_video_t2v_720p_bf16.safetensors "https://huggingface.co/Kijai/HunyuanVideo_comfy/blob/main/hunyuan_video_720_cfgdistill_bf16.safetensors" \
+        && wget -O models/diffusion_models/hunyuan_video/hunyuan_video_720_cfgdistill_bf16.safetensors "https://huggingface.co/Kijai/HunyuanVideo_comfy/blob/main/hunyuan_video_720_cfgdistill_bf16.safetensors" \
         && wget -O models/vae/hunyuan_video_vae_bf16.safetensors "https://huggingface.co/Kijai/HunyuanVideo_comfy/blob/main/hunyuan_video_vae_bf16.safetensors" \
         ; \
     fi
