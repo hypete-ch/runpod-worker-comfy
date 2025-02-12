@@ -1,6 +1,6 @@
 services:
   comfyui-worker:
-    image: timpietruskyblibla/runpod-worker-comfy:3.4.0-sdxl
+    image: hypetech/runpod-worker-comfy:hunyuan-1.1-c2
     build:
       args:
         - MODEL_TYPE=hunyuan
@@ -14,6 +14,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - SERVE_API_LOCALLY=true
+      - MODEL_TYPE=hunyuan
     ports:
       - "8000:8000"
       - "8188:8188"

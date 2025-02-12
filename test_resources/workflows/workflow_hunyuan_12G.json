@@ -100,7 +100,7 @@
   },
   "25": {
     "inputs": {
-      "noise_seed": 331188939947554
+      "noise_seed": 230846988275092
     },
     "class_type": "RandomNoise",
     "_meta": {
@@ -122,6 +122,7 @@
   },
   "44": {
     "inputs": {
+      "text": "anime style anime girl with massive fennec ears and one big fluffy tail, she has blonde hair long hair blue eyes wearing a pink sweater and a long blue skirt walking in a beautiful outdoor scenery with snow mountains in the background",
       "clip": [
         "11",
         0

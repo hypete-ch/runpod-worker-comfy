@@ -68,6 +68,7 @@ RUN if [ "$MODEL_TYPE" = "refine" ]; then \
   elif [ "$MODEL_TYPE" = "hunyuan" ]; then \
     python3 custom_nodes/ComfyUI-Manager/cm-cli.py install \
         ComfyUI-Inpaint-CropAndStitch \
+    && pip3 install --upgrade opencv-python \
     && git clone https://github.com/kijai/ComfyUI-HunyuanVideoWrapper custom_nodes/ComfyUI-HunyuanVideoWrapper \
     && git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite custom_nodes/ComfyUI-VideoHelperSuite \
     && git clone https://github.com/kijai/ComfyUI-KJNodes custom_nodes/ComfyUI-KJNodes \
