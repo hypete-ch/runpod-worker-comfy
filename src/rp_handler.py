@@ -19,7 +19,7 @@ COMFY_API_AVAILABLE_MAX_RETRIES = 500
 # Time to wait between poll attempts in milliseconds
 COMFY_POLLING_INTERVAL_MS = os.environ.get("COMFY_POLLING_INTERVAL_MS", 250)
 # Maximum number of poll attempts
-COMFY_POLLING_MAX_RETRIES = os.environ.get("COMFY_POLLING_MAX_RETRIES", 500)
+COMFY_POLLING_MAX_RETRIES = int(os.environ.get("COMFY_POLLING_MAX_RETRIES", 500))
 # Host where ComfyUI is running
 COMFY_HOST = "127.0.0.1:8188"
 # Enforce a clean state after each job is done
@@ -141,7 +141,7 @@ async def upload_images(images):
 
             # Prepare the form data
             form_data = aiohttp.FormData()
-            form_data.add_field("image", BytesIO(blob), filename=name, content_type="image/png")
+            form_data.add_field("image", BytesIO(blob), filename=name, content_type="video/webm")
             form_data.add_field("overwrite", "true")
 
             # Asynchronous POST request to upload the image
@@ -259,12 +259,11 @@ def process_output_images(outputs, job_id, format):
     output_images = []
 
     for node_id, node_output in outputs.items():
-        if "images" in node_output:
-            logging.info("%s", node_output["images"])
-            for image in node_output["images"]:
-                if image.get("type") != "output":
-                    continue
-                output_images.append(os.path.join(image["subfolder"], image["filename"]))
+        if "gifs" in node_output:
+            logging.info("%s", node_output["gifs"])
+            for image in node_output["gifs"]:
+                if image.get("type") == "temp" or image.get("type") == "output": 
+                    output_images.append(os.path.join(image["subfolder"], image["filename"]))
 
     print(f"runpod-worker-comfy - image generation is done")
 

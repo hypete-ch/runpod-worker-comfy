@@ -72,6 +72,7 @@ RUN if [ "$MODEL_TYPE" = "refine" ]; then \
     && git clone https://github.com/kijai/ComfyUI-HunyuanVideoWrapper custom_nodes/ComfyUI-HunyuanVideoWrapper \
     && git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite custom_nodes/ComfyUI-VideoHelperSuite \
     && git clone https://github.com/kijai/ComfyUI-KJNodes custom_nodes/ComfyUI-KJNodes \
+    && git clone https://github.com/chengzeyi/Comfy-WaveSpeed.git \
     && pip3 install -r custom_nodes//ComfyUI-HunyuanVideoWrapper/requirements.txt \
     && pip3 install -r custom_nodes/ComfyUI-VideoHelperSuite/requirements.txt \
     && pip3 install -r custom_nodes/ComfyUI-KJNodes/requirements.txt \
@@ -126,12 +127,17 @@ RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
         ; \
     elif [ "$MODEL_TYPE" = "hunyuan" ]; then \
       mkdir -p models/text_encoders models/diffusion_models/hunyuan_video models/LLM/llava-llama-3-8b-text-encoder-tokenizer models/clip/clip-vit-large-patch14 \
-        && wget -O models/text_encoders/clip_l.safetensors "https://huggingface.co/Comfy-Org/HunyuanVideo_repackaged/blob/main/split_files/text_encoders/clip_l.safetensors" \
-        && wget -O models/text_encoders/llava_llama3_fp16.safetensors "https://huggingface.co/Comfy-Org/HunyuanVideo_repackaged/resolve/main/split_files/text_encoders/llava_llama3_fp16.safetensors" \
-        && wget -O models/diffusion_models/hunyuan_video/hunyuan_video_720_cfgdistill_bf16.safetensors "https://huggingface.co/Kijai/HunyuanVideo_comfy/resolve/main/hunyuan_video_720_cfgdistill_bf16.safetensors" \
-        && wget -O models/vae/hunyuan_video_vae_bf16.safetensors "https://huggingface.co/Kijai/HunyuanVideo_comfy/resolve/main/hunyuan_video_vae_bf16.safetensors" \
-        && huggingface-cli download Kijai/llava-llama-3-8b-text-encoder-tokenizer --local-dir models/LLM/llava-llama-3-8b-text-encoder-tokenizer \
-        && huggingface-cli download openai/clip-vit-large-patch14 --local-dir models/clip/clip-vit-large-patch14 \
+        # && wget -O  models/checkpoints/v1-5-pruned-emaonly-fp16.safetensors "https://huggingface.co/Comfy-Org/stable-diffusion-v1-5-archive/resolve/main/v1-5-pruned-emaonly-fp16.safetensors" \
+        # && wget -O models/text_encoders/clip_l.safetensors "https://huggingface.co/Comfy-Org/HunyuanVideo_repackaged/blob/main/split_files/text_encoders/clip_l.safetensors" \
+        # && wget -O models/diffusion_models/hunyuan_video/hunyuan-video-t2v-720p-Q3_K_M.gguf "https://huggingface.co/city96/HunyuanVideo-gguf/resolve/main/hunyuan-video-t2v-720p-Q3_K_M.gguf" \
+        # && wget -O models/vae/hunyuan_video_vae_bf16.safetensors "https://huggingface.co/calcuis/hunyuan-gguf/resolve/main/hunyuan_video_vae_bf16.safetensors" \
+        # && wget -O models/clip/llava-llama-3-8B-v1_1-Q3_K_M.gguf "https://huggingface.co/city96/llava-llama-3-8b-v1_1-imat-gguf/blob/main/llava-llama-3-8B-v1_1-Q3_K_M.gguf" \
+        # && gdown 1s_WvkoQBZm9jtMekp_XegSaQpyE42nGp -O models/loras \
+        # && wget -O models/text_encoders/llava_llama3_fp16.safetensors "https://huggingface.co/Comfy-Org/HunyuanVideo_repackaged/resolve/main/split_files/text_encoders/llava_llama3_fp16.safetensors" \
+        # && wget -O models/diffusion_models/hunyuan_video/hunyuan_video_720_cfgdistill_bf16.safetensors "https://huggingface.co/Kijai/HunyuanVideo_comfy/resolve/main/hunyuan_video_720_cfgdistill_bf16.safetensors" \
+        # && wget -O models/vae/hunyuan_video_vae_bf16.safetensors "https://huggingface.co/Kijai/HunyuanVideo_comfy/resolve/main/hunyuan_video_vae_bf16.safetensors" \
+        # && huggingface-cli download Kijai/llava-llama-3-8b-text-encoder-tokenizer --local-dir models/LLM/llava-llama-3-8b-text-encoder-tokenizer \
+        # && huggingface-cli download openai/clip-vit-large-patch14 --local-dir models/clip/clip-vit-large-patch14 \
         ; \
     fi
 

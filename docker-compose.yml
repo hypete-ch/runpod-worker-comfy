@@ -1,6 +1,6 @@
 services:
   comfyui-worker:
-    image: hypetech/runpod-worker-comfy:hunyuan-1.1-c2
+    image: hypetech/runpod-worker-comfy:hunyuan-1.1-c3
     build:
       args:
         - MODEL_TYPE=hunyuan
