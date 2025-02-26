@@ -13,3 +13,4 @@ runpod_worker_comfy:
   LLM: models/LLM/
   diffusion_models: models/diffusion_models/
   text_encoders: models/text_encoders/
+  mmaudio: models/mmaudio/

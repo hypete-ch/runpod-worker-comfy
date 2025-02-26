@@ -41,6 +41,9 @@ RUN pip3 install runpod requests
 # Install huggingface cli
 RUN pip3 install "huggingface_hub[cli]"
 
+# Install gdown
+RUN pip3 install gdown
+
 ARG MODEL_TYPE
 
 RUN if [ "$MODEL_TYPE" = "refine" ]; then \
@@ -66,16 +69,22 @@ RUN if [ "$MODEL_TYPE" = "refine" ]; then \
     && git clone https://github.com/glowcone/comfyui-base64-to-image custom_nodes/comfyui-base64-to-image \
     ; \
   elif [ "$MODEL_TYPE" = "hunyuan" ]; then \
-    python3 custom_nodes/ComfyUI-Manager/cm-cli.py install \
-        ComfyUI-Inpaint-CropAndStitch \
-    && pip3 install --upgrade opencv-python \
+    pip3 install --upgrade opencv-python \
+    && pip3 install bitsandbytes \
     && git clone https://github.com/kijai/ComfyUI-HunyuanVideoWrapper custom_nodes/ComfyUI-HunyuanVideoWrapper \
     && git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite custom_nodes/ComfyUI-VideoHelperSuite \
     && git clone https://github.com/kijai/ComfyUI-KJNodes custom_nodes/ComfyUI-KJNodes \
-    && git clone https://github.com/chengzeyi/Comfy-WaveSpeed.git \
+    && git clone https://github.com/chengzeyi/Comfy-WaveSpeed.git custom_nodes/wavespeed \
+    && git clone https://github.com/welltop-cn/ComfyUI-TeaCache.git custom_nodes/ComfyUI-TeaCache \
+    && git clone https://github.com/kijai/ComfyUI-MMAudio.git custom_nodes/ComfyUI-MMAudio \
+    && git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git custom_nodes/ComfyUI-Custom-Scripts \
+    && git clone https://github.com/CY-CHENYUE/ComfyUI-Janus-Pro custom_nodes/ComfyUI-Janus-Pro \
     && pip3 install -r custom_nodes//ComfyUI-HunyuanVideoWrapper/requirements.txt \
     && pip3 install -r custom_nodes/ComfyUI-VideoHelperSuite/requirements.txt \
     && pip3 install -r custom_nodes/ComfyUI-KJNodes/requirements.txt \
+    && pip3 install -r custom_nodes/ComfyUI-TeaCache/requirements.txt \
+    && pip3 install -r custom_nodes/ComfyUI-MMAudio/requirements.txt \
+    && pip3 install -r custom_nodes/ComfyUI-Janus-Pro/requirements.txt \
   ; \
   fi
 
@@ -136,8 +145,8 @@ RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
         # && wget -O models/text_encoders/llava_llama3_fp16.safetensors "https://huggingface.co/Comfy-Org/HunyuanVideo_repackaged/resolve/main/split_files/text_encoders/llava_llama3_fp16.safetensors" \
         # && wget -O models/diffusion_models/hunyuan_video/hunyuan_video_720_cfgdistill_bf16.safetensors "https://huggingface.co/Kijai/HunyuanVideo_comfy/resolve/main/hunyuan_video_720_cfgdistill_bf16.safetensors" \
         # && wget -O models/vae/hunyuan_video_vae_bf16.safetensors "https://huggingface.co/Kijai/HunyuanVideo_comfy/resolve/main/hunyuan_video_vae_bf16.safetensors" \
-        # && huggingface-cli download Kijai/llava-llama-3-8b-text-encoder-tokenizer --local-dir models/LLM/llava-llama-3-8b-text-encoder-tokenizer \
-        # && huggingface-cli download openai/clip-vit-large-patch14 --local-dir models/clip/clip-vit-large-patch14 \
+        # && huggingface-cli download Kijai/llava-llama-3-8b-text-encoder-tokenizer --local-dir models/LLM/Kijai/llava-llama-3-8b-text-encoder-tokenizer \
+        # && huggingface-cli download openai/clip-vit-large-patch14 --local-dir models/openai/clip/clip-vit-large-patch14 \
         ; \
     fi
 
