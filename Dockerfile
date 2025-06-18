@@ -36,7 +36,7 @@ RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-u
     && pip3 install -r custom_nodes/ComfyUI-Manager/requirements.txt
 
 # Install runpod
-RUN pip3 install runpod requests
+RUN pip3 install runpod>=1.7.9 requests
 
 # Install huggingface cli
 RUN pip3 install "huggingface_hub[cli]"
