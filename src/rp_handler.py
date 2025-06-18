@@ -19,7 +19,7 @@ COMFY_API_AVAILABLE_MAX_RETRIES = 500
 # Time to wait between poll attempts in milliseconds
 COMFY_POLLING_INTERVAL_MS = os.environ.get("COMFY_POLLING_INTERVAL_MS", 250)
 # Maximum number of poll attempts
-COMFY_POLLING_MAX_RETRIES = os.environ.get("COMFY_POLLING_MAX_RETRIES", 500)
+COMFY_POLLING_MAX_RETRIES = int(os.environ.get("COMFY_POLLING_MAX_RETRIES", 500))
 # Host where ComfyUI is running
 COMFY_HOST = "127.0.0.1:8188"
 # Enforce a clean state after each job is done
@@ -141,7 +141,7 @@ async def upload_images(images):
 
             # Prepare the form data
             form_data = aiohttp.FormData()
-            form_data.add_field("image", BytesIO(blob), filename=name, content_type="image/png")
+            form_data.add_field("image", BytesIO(blob), filename=name, content_type="video/webm")
             form_data.add_field("overwrite", "true")
 
             # Asynchronous POST request to upload the image
@@ -257,14 +257,14 @@ def process_output_images(outputs, job_id, format):
     COMFY_OUTPUT_PATH = os.environ.get("COMFY_OUTPUT_PATH", "/comfyui/output")
 
     output_images = []
-
+    output_thumbnails = []
     for node_id, node_output in outputs.items():
-        if "images" in node_output:
-            logging.info("%s", node_output["images"])
-            for image in node_output["images"]:
-                if image.get("type") != "output":
-                    continue
-                output_images.append(os.path.join(image["subfolder"], image["filename"]))
+        if "gifs" in node_output:
+            logging.info("%s", node_output["gifs"])
+            for image in node_output["gifs"]:
+                if image.get("type") == "temp" or image.get("type") == "output": 
+                    output_images.append(os.path.join(image["subfolder"], image["filename"]))
+                    output_thumbnails.append(os.path.join(image["subfolder"], image["workflow"]))
 
     print(f"runpod-worker-comfy - image generation is done")
 
@@ -272,7 +272,6 @@ def process_output_images(outputs, job_id, format):
     for output_idx, output_image in enumerate(output_images):
         # expected image output folder
         local_image_path = f"{COMFY_OUTPUT_PATH}/{output_image}"
-
         print(f"runpod-worker-comfy - [{output_idx}]{local_image_path}")
 
         # The image is in the output folder
@@ -292,11 +291,36 @@ def process_output_images(outputs, job_id, format):
 
         else:
             print("runpod-worker-comfy - the image does not exist in the output folder")
-
+    
     if len(result_images) > 0:
+        result_thumbnails = []
+    for output_idx, output_thumbnail in enumerate(output_thumbnails):
+        # expected thumbnail output folder
+        local_thumbnail_path = f"{COMFY_OUTPUT_PATH}/{output_thumbnail}"
+        print(f"runpod-worker-comfy - [{output_idx}]{local_thumbnail_path}")
+
+        # The thumbnail is in the output folder
+        if os.path.exists(local_thumbnail_path):
+            if os.environ.get("BUCKET_ENDPOINT_URL", False) and format != "base64":
+                # URL to thumbnail in AWS S3
+                result_thumbnails.append(rp_upload.upload_image(job_id, local_thumbnail_path))
+                print(
+                    f"runpod-worker-comfy - [{output_idx}]the thumbnail was generated and uploaded to AWS S3"
+                )
+            else:
+                # base64 thumbnail
+                result_thumbnails.append(base64_encode(local_thumbnail_path))
+                print(
+                    f"runpod-worker-comfy - [{output_idx}]the thumbnail was generated and converted to base64"
+                )
+
+        else:
+            print("runpod-worker-comfy - the thumbnail does not exist in the output folder")
+
         return {
             "status": "success",
             "message": result_images[0],
+            "thumbnail": result_thumbnails[0],
             "images": result_images,
         }
     else:

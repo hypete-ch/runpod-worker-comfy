@@ -1,16 +1,23 @@
-version: "3.8"
-
 services:
-  comfyui:
-    image: timpietruskyblibla/runpod-worker-comfy:dev
-    container_name: comfyui-worker
+  comfyui-worker:
+    image: hypetech/runpod-worker-comfy:hunyuan-1.1-c3
+    build:
+      args:
+        - MODEL_TYPE=hunyuan
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - SERVE_API_LOCALLY=true
+      - MODEL_TYPE=hunyuan
     ports:
       - "8000:8000"
       - "8188:8188"
-    runtime: nvidia
     volumes:
       - ./data/comfyui/output:/comfyui/output
       - ./data/runpod-volume:/runpod-volume
