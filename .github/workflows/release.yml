@@ -1,4 +1,4 @@
-name: Release
+name: release
 
 on:
   workflow_dispatch:
@@ -8,26 +8,18 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest-l
+    runs-on: [blacksmith-8vcpu-ubuntu-2204, linux]
     if: ${{ !contains(github.event.head_commit.message, 'chore(release)') }}
     permissions:
-      contents: write # to be able to publish a GitHub release
-      issues: write # to be able to comment on released issues
-      pull-requests: write # to be able to comment on released pull requests
+      contents: write
+      issues: write
+      pull-requests: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           persist-credentials: false
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
 
       - name: Clear space to remove unused folders
         run: |
@@ -56,9 +48,9 @@ jobs:
         id: semanticrelease
         with:
           additional-packages: |
-            ['@semantic-release/git', '@semantic-release/changelog']
+            ['@semantic-release/git', '@semantic-release/changelog', '@semantic-release/exec']
         env:
-          GITHUB_TOKEN: ${{ secrets.BLIBLA_SEMANTIC_RELEASE }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Set environment variables
         if: steps.semanticrelease.outputs.new-release-published == 'true'

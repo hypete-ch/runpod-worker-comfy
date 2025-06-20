@@ -1,13 +1,13 @@
 variable "DOCKERHUB_REPO" {
-  default = ""
+  default = "runpod"
 }
 
 variable "DOCKERHUB_IMG" {
-  default = ""
+  default = "worker-comfyui"
 }
 
 variable "RELEASE_VERSION" {
-  default = ""
+  default = "latest"
 }
 
 variable "HUGGINGFACE_ACCESS_TOKEN" {
@@ -22,6 +22,10 @@ target "base" {
   context = "."
   dockerfile = "Dockerfile"
   target = "base"
+  platforms = ["linux/amd64"]
+  args = {
+    MODEL_TYPE = "base"
+  }
   tags = ["${DOCKERHUB_REPO}/${DOCKERHUB_IMG}:${RELEASE_VERSION}-base"]
 }
 
@@ -69,6 +73,14 @@ target "flux1-dev" {
     HUGGINGFACE_ACCESS_TOKEN = "${HUGGINGFACE_ACCESS_TOKEN}"
   }
   tags = ["${DOCKERHUB_REPO}/${DOCKERHUB_IMG}:${RELEASE_VERSION}-flux1-dev"]
+  inherits = ["base"]
+}
+
+target "flux1-dev-fp8" {
+  context = "."
+  dockerfile = "Dockerfile"
+  target = "final"
+  tags = ["${DOCKERHUB_REPO}/${DOCKERHUB_IMG}:${RELEASE_VERSION}-flux1-dev-fp8"]
   inherits = ["base"]
 }
 
