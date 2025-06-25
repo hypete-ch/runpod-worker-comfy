@@ -10,4 +10,4 @@ shift;
 
 echo "tag: refine-$tag_version"
 
-docker build --build-arg MODEL_TYPE=refine --build-arg CIVITAI_ACCESS_TOKEN=${CIVIT_ACCESS_TOKEN} -t "hypetech/runpod-worker-comfy:refine-$tag_version" --platform linux/amd64 "$@" .
+docker build --build-arg MODEL_TYPE=refine --build-arg HUGGINGFACE_ACCESS_TOKEN=${HUGGINGFACE_ACCESS_TOKEN} -t "hypetech/runpod-worker-comfy:refine-$tag_version" --platform linux/amd64 "$@" .

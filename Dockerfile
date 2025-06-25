@@ -46,15 +46,17 @@ RUN uv pip install comfy-cli pip setuptools wheel
 # Install ComfyUI
 RUN /usr/bin/yes | comfy --workspace /comfyui install --version 0.3.30 --cuda-version 12.6 --nvidia
 
-# Change working directory to ComfyUI
-WORKDIR /comfyui
-
 # Set default model type if none is provided
 ARG MODEL_TYPE=flux1-dev-fp8
 
+# Change working directory to ComfyUI
+WORKDIR /comfyui
+
+# custom nodes should be downloaded here, not downloader
 RUN if [ "$MODEL_TYPE" = "refine" ]; then \
+      git clone https://github.com/PowerHouseMan/ComfyUI-AdvancedLivePortrait custom_nodes/ComfyUI-AdvancedLivePortrait && \
+	  pip3 install -r custom_nodes/ComfyUI-AdvancedLivePortrait/requirements.txt && \
       python3 custom_nodes/ComfyUI-Manager/cm-cli.py install \
-          ComfyUI-AdvancedLivePortrait \
           ComfyUI-load-image-from-url \
           ComfyUI-BRIA_AI-RMBG && \
       wget -O custom_nodes/ComfyUI-BRIA_AI-RMBG/RMBG-1.4/model.pth "https://huggingface.co/briaai/RMBG-1.4/resolve/main/model.pth" && \
@@ -106,10 +108,11 @@ CMD ["/start.sh"]
 FROM base AS downloader
 
 ARG HUGGINGFACE_ACCESS_TOKEN
-# Set default model type if none is provided
 
 # Change working directory to ComfyUI
 WORKDIR /comfyui
+
+ENV WORKER_MODEL_TYPE=$MODEL_TYPE
 
 # Create necessary directories upfront
 RUN mkdir -p models/checkpoints models/vae models/unet models/clip
