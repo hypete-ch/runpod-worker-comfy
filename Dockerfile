@@ -54,27 +54,26 @@ WORKDIR /comfyui
 
 # custom nodes should be downloaded here, not downloader
 RUN if [ "$MODEL_TYPE" = "refine" ]; then \
-      git clone https://github.com/PowerHouseMan/ComfyUI-AdvancedLivePortrait custom_nodes/ComfyUI-AdvancedLivePortrait && \
-	  pip3 install -r custom_nodes/ComfyUI-AdvancedLivePortrait/requirements.txt && \
+      comfy node registry-install comfyui-advancedliveportrait && \
       python3 custom_nodes/ComfyUI-Manager/cm-cli.py install \
           ComfyUI-load-image-from-url \
           ComfyUI-BRIA_AI-RMBG && \
       wget -O custom_nodes/ComfyUI-BRIA_AI-RMBG/RMBG-1.4/model.pth "https://huggingface.co/briaai/RMBG-1.4/resolve/main/model.pth" && \
       pip3 install --upgrade opencv-python && \
-      git clone https://github.com/glowcone/comfyui-base64-to-image custom_nodes/comfyui-base64-to-image ; \
+      comfy node registry-install comfyui-base64-to-image ; \
     fi
 RUN if [ "$MODEL_TYPE" = "base" ]; then \
       python3 custom_nodes/ComfyUI-Manager/cm-cli.py install \
-          ComfyUI_essentials \
           comfyui-various \
           ComfyUI_Comfyroll_CustomNodes \
           was-node-suite-comfyui \
           masquerade-nodes-comfyui \
-          ComfyUI-load-image-from-url \
-          ComfyUI_UltimateSDUpscale \
-          ComfyUI-Inpaint-CropAndStitch && \
+          ComfyUI-load-image-from-url && \
+      comfy node registry-install comfyui-essentials && \
+      comfy node registry-install comfyui_ultimatesdupscale && \
+      comfy node registry-install comfyui-inpaint-cropandstitch && \
       pip3 install --upgrade opencv-python && \
-      git clone https://github.com/glowcone/comfyui-base64-to-image custom_nodes/comfyui-base64-to-image ; \
+      comfy node registry-install comfyui-base64-to-image ; \
     fi
 
 # Support for the network volume
