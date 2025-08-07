@@ -67,6 +67,7 @@ RUN if [ "$MODEL_TYPE" = "base" ]; then \
           comfyui-various \
           ComfyUI_Comfyroll_CustomNodes \
           was-node-suite-comfyui \
+          efficiency-nodes-comfyui \
           masquerade-nodes-comfyui \
           ComfyUI-load-image-from-url && \
       comfy node registry-install comfyui-essentials && \
